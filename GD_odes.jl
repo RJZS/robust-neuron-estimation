@@ -56,7 +56,7 @@ function init_neur(V0)
     mCaT0=mCaTinf(V0) 
     hCaT0=hCaTinf(V0) 
     mH0=mHinf(V0) 
-    Ca0=(-αCa*gCaL*mCaL0*(V0-VCa))+(-β*gCaT*mCaT0*hCaT0*(V0-VCa))*2
+    Ca0=(-αCa*gCaL*mCaL0*(V0-ECa))+(-β*gCaT*mCaT0*hCaT0*(V0-ECa))*2
     x0 = [V0 mNa0 hNa0 mKd0 mAf0 hAf0 mAs0 hAs0 mCaL0 mCaT0 hCaT0 mH0 Ca0]
 end
 
@@ -101,17 +101,17 @@ function CBM_ODE(du,u,p,t)
 
     # ODEs
                     # Sodium current
-    du[1] = (1/C) * (-gNa*mNa*hNa*(V-VNa) +
+    du[1] = (1/C) * (-gNa*mNa*hNa*(V-ENa) +
                     # Potassium Currents
-                    -gKd*mKd*(V-VK) -gAf*mAf*hAf*(V-VK) -gAs*mAs*hAs*(V-VK) +
-                    -gKCa*mKCainf(Ca,half_acts[12])*(V-VK) +
+                    -gKd*mKd*(V-EK) -gAf*mAf*hAf*(V-EK) -gAs*mAs*hAs*(V-EK) +
+                    -gKCa*mKCainf(Ca,half_acts[12])*(V-EK) +
                     # Calcium currents
-                    -gCaL*mCaL*(V-VCa) +
-                    -gCaT*mCaT*hCaT*(V-VCa) +
+                    -gCaL*mCaL*(V-ECa) +
+                    -gCaT*mCaT*hCaT*(V-ECa) +
                     # Cation current
-                    -gH*mH*(V-VH) +
+                    -gH*mH*(V-EH) +
                     # Passive currents
-                    -gl*(V-Vl) +
+                    -gl*(V-Eleak) +
                     # Stimulation currents
                     +Iapp(t) + I1*pulse(t,ti1,tf1) + I2*pulse(t,ti2,tf2))
     du[2] = (1/tau_mNa(V)) * (mNainf(V,half_acts[1]) - mNa)
@@ -125,7 +125,7 @@ function CBM_ODE(du,u,p,t)
     du[10] = (1/tau_mCaT(V)) * (mCaTinf(V,half_acts[9]) - mCaT)
     du[11] = (1/tau_hCaT(V)) * (hCaTinf(V,half_acts[10]) - hCaT)
     du[12] = (1/tau_mH(V)) * (mHinf(V,half_acts[11]) - mH)
-    du[13] = (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-VCa))+(-β*gCaT*mCaT*hCaT*(V-VCa)) - Ca) 
+    du[13] = (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-ECa))+(-β*gCaT*mCaT*hCaT*(V-ECa)) - Ca) 
 end
 
 
@@ -172,18 +172,18 @@ function CBM_observer!(du,u,p,t)
     Ca=u[13] # Intracellular calcium concentration
     
     θ = [gCaL gCaT]
-    ϕ = 1/C*[-mCaL*(V-VCa) ...
-            -mCaT*hCaT*(V-VCa)];
+    ϕ = 1/C*[-mCaL*(V-ECa) ...
+            -mCaT*hCaT*(V-ECa)];
         
                 # Sodium current
-    b = (1/C) * (-gNa*mNa*hNa*(V-VNa) +
+    b = (1/C) * (-gNa*mNa*hNa*(V-ENa) +
                 # Potassium Currents
-                -gKd*mKd*(V-VK) -gAf*mAf*hAf*(V-VK) -gAs*mAs*hAs*(V-VK) +
-                -gKCa*mKCainf(Ca)*(V-VK) +
+                -gKd*mKd*(V-EK) -gAf*mAf*hAf*(V-EK) -gAs*mAs*hAs*(V-EK) +
+                -gKCa*mKCainf(Ca)*(V-EK) +
                 # Cation current
-                -gH*mH*(V-VH) +
+                -gH*mH*(V-EH) +
                 # Passive currents
-                -gl*(V-Vl) +
+                -gl*(V-Eleak) +
                 # Stimulation currents
                 +Iapp(t) + I1*pulse(t,ti1,tf1) + I2*pulse(t,ti2,tf2))
     du[1] = dot(ϕ,θ) + b
@@ -200,7 +200,7 @@ function CBM_observer!(du,u,p,t)
     du[10] = (1/tau_mCaT(V)) * (mCaTinf(V) - mCaT)
     du[11] = (1/tau_hCaT(V)) * (hCaTinf(V) - hCaT)
     du[12] = (1/tau_mH(V)) * (mHinf(V) - mH)
-    du[13] = (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-VCa))+(-β*gCaT*mCaT*hCaT*(V-VCa)) - Ca) 
+    du[13] = (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-ECa))+(-β*gCaT*mCaT*hCaT*(V-ECa)) - Ca) 
 
     # Adaptive observer
     Vh=u[14] # Membrane potential
@@ -221,17 +221,17 @@ function CBM_observer!(du,u,p,t)
     P = (P+P')/2
     Ψ = u[28+4+1:28+4+2]
 
-    ϕ̂ = 1/C*[-mCaLh * (V-VCa) ...
-            -mCaTh * hCaTh * (V-VCa)];
+    ϕ̂ = 1/C*[-mCaLh * (V-ECa) ...
+            -mCaTh * hCaTh * (V-ECa)];
 
-    bh = (1/C) * (-gNa*mNah*hNah*(V-VNa) +
+    bh = (1/C) * (-gNa*mNah*hNah*(V-ENa) +
     # Potassium Currents
-    -gKd*mKdh*(V-VK) -gAf*mAfh*hAfh*(V-VK) -gAs*mAsh*hAsh*(V-VK) +
-    -gKCa*mKCainf(Cah,half_acts[12])*(V-VK) +
+    -gKd*mKdh*(V-EK) -gAf*mAfh*hAfh*(V-EK) -gAs*mAsh*hAsh*(V-EK) +
+    -gKCa*mKCainf(Cah,half_acts[12])*(V-EK) +
     # Cation current
-    -gH*mHh*(V-VH) +
+    -gH*mHh*(V-EH) +
     # Passive currents
-    -gl*(V-Vl) +
+    -gl*(V-Eleak) +
     # Stimulation currents
     +Iapp(t) + I1*pulse(t,ti1,tf1) + I2*pulse(t,ti2,tf2))
 
@@ -250,7 +250,7 @@ function CBM_observer!(du,u,p,t)
     du[23] = (1/tau_mCaT(V)) * (mCaTinf(V,half_acts[9]) - mCaTh)
     du[24] = (1/tau_hCaT(V)) * (hCaTinf(V,half_acts[10]) - hCaTh)
     du[25] = (1/tau_mH(V)) * (mHinf(V,half_acts[11]) - mHh)
-    du[26] = (1/tau_Ca) * ((-αCa*gCaL*mCaLh*(V-VCa))+(-β*gCaT*mCaTh*hCaTh*(V-VCa)) - Cah) 
+    du[26] = (1/tau_Ca) * ((-αCa*gCaL*mCaLh*(V-ECa))+(-β*gCaT*mCaTh*hCaTh*(V-ECa)) - Cah) 
 
     du[27:28]= γ*P*Ψ*(V-Vh); # dθ̂ 
     du[28+4+1:28+4+2] = -γ*Ψ + ϕ̂;  # dΨ

@@ -9,11 +9,11 @@ D = Differential(t)
 ## Constant simulation parameters
 
 ## Definition of reversal potential values. 
-const VNa = 40.; # Sodium reversal potential
-const VK = -90.; # Potassium reversal potential
-const VCa = 120.; # Calcium reversal potential
-const VH= -40.; # Reversal potential for the H-current (permeable to both sodium and potassium ions)
-const Vl = -50.; # Reversal potential of leak channels
+const ENa = 40.; # Sodium reversal potential
+const EK = -90.; # Potassium reversal potential
+const ECa = 120.; # Calcium reversal potential
+const EH= -40.; # Reversal potential for the H-current (permeable to both sodium and potassium ions)
+const Eleak = -50.; # Reversal potential of leak channels
 
 const C=0.1; # Membrane capacitance
 αCa=0.1; # Calcium dynamics (L-current)
@@ -84,17 +84,17 @@ end
 @register_symbolic gCaL_fn(t)
 
 @named NeurTrue = ODESystem([
-    D(V) ~ (1/C) * (-gNa*mNa*hNa*(V-VNa) +
+    D(V) ~ (1/C) * (-gNa*mNa*hNa*(V-ENa) +
     # Potassium Currents
-    -gKd*mKd*(V-VK) -gAf*mAf*hAf*(V-VK) -gAs*mAs*hAs*(V-VK) +
-    -gKCa*mKCainf(Ca)*(V-VK) +
+    -gKd*mKd*(V-EK) -gAf*mAf*hAf*(V-EK) -gAs*mAs*hAs*(V-EK) +
+    -gKCa*mKCainf(Ca)*(V-EK) +
     # Calcium currents
-    -gCaL*mCaL*(V-VCa) +
-    -gCaT*mCaT*hCaT*(V-VCa) +
+    -gCaL*mCaL*(V-ECa) +
+    -gCaT*mCaT*hCaT*(V-ECa) +
     # Cation current
-    -gH*mH*(V-VH) +
+    -gH*mH*(V-EH) +
     # Passive currents
-    -gl*(V-Vl) +
+    -gl*(V-Eleak) +
     # Stimulation currents
     # +Iapp(t) + I1*pulse(t,ti1,tf1) + I2*pulse(t,ti2,tf2))
     +input),
@@ -112,7 +112,7 @@ end
     D(mCaT) ~ (1/tau_mCaT(V)) * (mCaTinf(V) - mCaT),
     D(hCaT) ~ (1/tau_hCaT(V)) * (hCaTinf(V) - hCaT),
     D(mH) ~ (1/tau_mH(V)) * (mHinf(V) - mH),
-    D(Ca) ~ (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-VCa))+(-β*2.5*mCaT*hCaT*(V-VCa)) - Ca) 
+    D(Ca) ~ (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-ECa))+(-β*2.5*mCaT*hCaT*(V-ECa)) - Ca) 
 ],t)
 
 # Modelling errors
@@ -138,12 +138,12 @@ q = (k-1)*l+1 # Length of phi vector (no redundancy for leak current)
 γ = 8*ones(q)
 
 @named Identifier = ODESystem([
-    [ϕ[i] ~ -mNah[i]*hNah[i]*(V-VNa)/C for i=1:l]...,
-    [ϕ[l+i] ~ -mKdh[i]*(V-VK)/C for i=1:l]...,
-    [ϕ[2*l+i] ~ -mCaLh[i]*(V-VCa)/C for i=1:l]...,
-    [ϕ[3*l+i] ~ -mCaTh[i]*hCaTh[i]*(V-VCa)/C for i=1:l]...,
-    [ϕ[4*l+i] ~ -mKCainf(Cah[i]-half_acts[6*l+i])*(V-VK)/C for i=1:l]...,
-    ϕ[5*l+1] ~ -(V-Vl)/C,
+    [ϕ[i] ~ -mNah[i]*hNah[i]*(V-ENa)/C for i=1:l]...,
+    [ϕ[l+i] ~ -mKdh[i]*(V-EK)/C for i=1:l]...,
+    [ϕ[2*l+i] ~ -mCaLh[i]*(V-ECa)/C for i=1:l]...,
+    [ϕ[3*l+i] ~ -mCaTh[i]*hCaTh[i]*(V-ECa)/C for i=1:l]...,
+    [ϕ[4*l+i] ~ -mKCainf(Cah[i]-half_acts[6*l+i])*(V-EK)/C for i=1:l]...,
+    ϕ[5*l+1] ~ -(V-Eleak)/C,
 
     [tmp[i] ~ γ[i]*P[i]*Ψ[i]^2 for i=1:q]...,
     D(Vh) ~ dot(θ,ϕ) + (γ0+sum(tmp))*(V-Vh) + input/C,
@@ -155,7 +155,7 @@ q = (k-1)*l+1 # Length of phi vector (no redundancy for leak current)
     [D(mCaTh[i]) ~ (1/(τ_errs[3*l+i]*tau_mCaT(V))) * (mCaTinf(V-half_acts[3*l+i]) - mCaTh[i]) for i=1:l]...,
     [D(hCaTh[i]) ~ (1/(τ_errs[4*l+i]*tau_hCaT(V))) * (hCaTinf(V-half_acts[4*l+i]) - hCaTh[i]) for i=1:l]...,
     [D(mKdh[i]) ~ (1/(τ_errs[5*l+i]*tau_mKd(V))) * (mKdinf(V-half_acts[5*l+i]) - mKdh[i]) for i=1:l]...,
-    [D(Cah[i]) ~ (1/(τ_errs[6*l+i]*tau_Ca)) * ((-β*2.5*mCaTh[i]*hCaTh[i]*(V-VCa)) - Cah[i]) for i=1:l]...,
+    [D(Cah[i]) ~ (1/(τ_errs[6*l+i]*tau_Ca)) * ((-β*2.5*mCaTh[i]*hCaTh[i]*(V-ECa)) - Cah[i]) for i=1:l]...,
 ],t)
 
 @variables meanNa(t) meanKd(t) meanKCa(t) meanCaT(t) meanCaL(t)
@@ -201,7 +201,7 @@ paramtrs = []
 V0 = -80.
 init_state_vec = [NeurTrue.V => V0, NeurTrue.mNa => mNainf(V0), NeurTrue.hNa => hNainf(V0), NeurTrue.mKd => mKdinf(V0),
     NeurTrue.mAf => 0., NeurTrue.hAf => 0., NeurTrue.mAs=>0.,NeurTrue.hAs=>0.,NeurTrue.mCaL=>mCaLinf(V0),
-    NeurTrue.mCaT=>0.,NeurTrue.hCaT=>0.,NeurTrue.mH=>0.,NeurTrue.Ca=>(-αCa*4*mCaLinf(V0)*(V0-VCa))+(-β*0*0*0*(V0-VCa)),
+    NeurTrue.mCaT=>0.,NeurTrue.hCaT=>0.,NeurTrue.mH=>0.,NeurTrue.Ca=>(-αCa*4*mCaLinf(V0)*(V0-ECa))+(-β*0*0*0*(V0-ECa)),
     Identifier.Vh => 0., [Identifier.mNah[i] => 0. for i=1:l]..., [Identifier.hNah[i] => 0. for i=1:l]..., [Identifier.mKdh[i] => 0. for i=1:l]...,
     [Identifier.mCaTh[i] => 0. for i=1:l]...,[Identifier.hCaTh[i] => 0. for i=1:l]...,[Identifier.mCaLh[i] => 0. for i=1:l]...,[Identifier.Cah[i] => 0. for i=1:l]...,
     [UpdateLaw.θ[i] => 10.0 for i=1:q]...,

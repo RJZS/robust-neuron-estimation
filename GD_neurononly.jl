@@ -10,11 +10,11 @@ D = Differential(t)
 ## Constant simulation parameters
 
 ## Definition of reversal potential values. 
-const VNa = 40.; # Sodium reversal potential
-const VK = -90.; # Potassium reversal potential
-const VCa = 120.; # Calcium reversal potential
-const VH= -40.; # Reversal potential for the H-current (permeable to both sodium and potassium ions)
-const Vl = -50.; # Reversal potential of leak channels
+const ENa = 40.; # Sodium reversal potential
+const EK = -90.; # Potassium reversal potential
+const ECa = 120.; # Calcium reversal potential
+const EH= -40.; # Reversal potential for the H-current (permeable to both sodium and potassium ions)
+const Eleak = -50.; # Reversal potential of leak channels
 
 const C=0.1; # Membrane capacitance
 αCa=0.1; # Calcium dynamics (L-current)
@@ -105,17 +105,17 @@ max_err_true = 0
 half_acts_true = max_err_true*(2*rand(12).-1)
 
 @named NeurTrue = ODESystem([
-    D(V) ~ (1/C) * (-gNa*mNa*hNa*(V-VNa) +
+    D(V) ~ (1/C) * (-gNa*mNa*hNa*(V-ENa) +
     # Potassium Currents
-    -gKd*mKd*(V-VK) -gAf*mAf*hAf*(V-VK) -gAs*mAs*hAs*(V-VK) +
-    -gKCa*mKCainf(Ca-half_acts_true[12])*(V-VK) +
+    -gKd*mKd*(V-EK) -gAf*mAf*hAf*(V-EK) -gAs*mAs*hAs*(V-EK) +
+    -gKCa*mKCainf(Ca-half_acts_true[12])*(V-EK) +
     # Calcium currents
-    -gCaL*mCaL*(V-VCa) +
-    -gCaT*mCaT*hCaT*(V-VCa) +
+    -gCaL*mCaL*(V-ECa) +
+    -gCaT*mCaT*hCaT*(V-ECa) +
     # Cation current
-    -gH*mH*(V-VH) +
+    -gH*mH*(V-EH) +
     # Passive currents
-    -gl*(V-Vl) +
+    -gl*(V-Eleak) +
     # Stimulation currents
     # +Iapp(t) + I1*pulse(t,ti1,tf1) + I2*pulse(t,ti2,tf2))
     +input),
@@ -134,7 +134,7 @@ half_acts_true = max_err_true*(2*rand(12).-1)
     D(mCaT) ~ (1/(τ_errs_true[9]*tau_mCaT(V))) * (mCaTinf(V-half_acts_true[9]) - mCaT),
     D(hCaT) ~ (1/(τ_errs_true[10]*tau_hCaT(V))) * (hCaTinf(V-half_acts_true[10]) - hCaT),
     D(mH) ~ (1/(τ_errs_true[11]*tau_mH(V))) * (mHinf(V-half_acts_true[11]) - mH),
-    D(Ca) ~ (1/(τ_errs_true[12]*tau_Ca)) * ((-αCa*gCaL*mCaL*(V-VCa))+(-β*2.5*mCaT*hCaT*(V-VCa)) - Ca) 
+    D(Ca) ~ (1/(τ_errs_true[12]*tau_Ca)) * ((-αCa*gCaL*mCaL*(V-ECa))+(-β*2.5*mCaT*hCaT*(V-ECa)) - Ca) 
 ],t)
 
 # Modelling errors
@@ -152,7 +152,7 @@ paramtrs = []
 V0 = -80.
 init_state_vec = [V => V0, mNa => mNainf(V0), hNa => hNainf(V0), mKd => mKdinf(V0),
     mAf => 0., hAf => 0., mAs=>0.,hAs=>0.,mCaL=>mCaLinf(V0),
-    mCaT=>0.,hCaT=>0.,mH=>0.,Ca=>(-αCa*4*mCaLinf(V0)*(V0-VCa))+(-β*0*0*0*(V0-VCa)),
+    mCaT=>0.,hCaT=>0.,mH=>0.,Ca=>(-αCa*4*mCaLinf(V0)*(V0-ECa))+(-β*0*0*0*(V0-ECa)),
     Identifier.Vh => 0., Identifier.mNah => 0., Identifier.hNah => 0., Identifier.mKdh => 0.,
     Identifier.mAfh => 0., Identifier.hAfh => 0., Identifier.mAsh=>0.,Identifier.hAsh=>0.,Identifier.mCaLh=>0.,
     Identifier.mCaTh=>0.,Identifier.hCaTh=>0.,Identifier.mHh=>0.,Identifier.Cah=>0.,

@@ -9,11 +9,11 @@ D = Differential(t)
 ## Constant simulation parameters
 
 ## Definition of reversal potential values. 
-const VNa = 40.; # Sodium reversal potential
-const VK = -90.; # Potassium reversal potential
-const VCa = 120.; # Calcium reversal potential
-const VH= -40.; # Reversal potential for the H-current (permeable to both sodium and potassium ions)
-const Vl = -50.; # Reversal potential of leak channels
+const ENa = 40.; # Sodium reversal potential
+const EK = -90.; # Potassium reversal potential
+const ECa = 120.; # Calcium reversal potential
+const EH= -40.; # Reversal potential for the H-current (permeable to both sodium and potassium ions)
+const Eleak = -50.; # Reversal potential of leak channels
 
 const C=0.1; # Membrane capacitance
 αCa=0.1; # Calcium dynamics (L-current)
@@ -91,17 +91,17 @@ half_acts = max_error*(2*rand(12).-1) # 12th element is for KCa, not Ca as in ta
 
 gCaLCa = 3 # In Ca dynamics
 @named NeurTrue = ODESystem([
-    D(V) ~ (1/C) * (-gNa*mNa*hNa*(V-VNa) +
+    D(V) ~ (1/C) * (-gNa*mNa*hNa*(V-ENa) +
     # Potassium Currents
-    -gKd*mKd*(V-VK) -gAf*mAf*hAf*(V-VK) -gAs*mAs*hAs*(V-VK) +
-    -gKCa*mKCainf(Ca)*(V-VK) +
+    -gKd*mKd*(V-EK) -gAf*mAf*hAf*(V-EK) -gAs*mAs*hAs*(V-EK) +
+    -gKCa*mKCainf(Ca)*(V-EK) +
     # Calcium currents
-    -gCaL*mCaL*(V-VCa) +
-    -gCaT*mCaT*hCaT*(V-VCa) +
+    -gCaL*mCaL*(V-ECa) +
+    -gCaT*mCaT*hCaT*(V-ECa) +
     # Cation current
-    -gH*mH*(V-VH) +
+    -gH*mH*(V-EH) +
     # Passive currents
-    -gl*(V-Vl) +
+    -gl*(V-Eleak) +
     # Stimulation currents
     # +Iapp(t) + I1*pulse(t,ti1,tf1) + I2*pulse(t,ti2,tf2))
     +input),
@@ -119,7 +119,7 @@ gCaLCa = 3 # In Ca dynamics
     D(mCaT) ~ (1/tau_mCaT(V)) * (mCaTinf(V) - mCaT),
     D(hCaT) ~ (1/tau_hCaT(V)) * (hCaTinf(V) - hCaT),
     D(mH) ~ (1/tau_mH(V)) * (mHinf(V) - mH),
-    D(Ca) ~ (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-VCa))+(-β*2.5*mCaT*hCaT*(V-VCa)) - Ca) 
+    D(Ca) ~ (1/tau_Ca) * ((-αCa*gCaL*mCaL*(V-ECa))+(-β*2.5*mCaT*hCaT*(V-ECa)) - Ca) 
 ],t)
 
 # Modelling errors
@@ -143,12 +143,12 @@ k = 6 # Number of maximal conductances to learn
 #γ = [5 5 1 1 1 5]
 
 @named Identifier = ODESystem([
-    ϕ[1] ~ -mNah*hNah*(V-VNa)/C,
-    ϕ[2] ~ -mKdh*(V-VK)/C,
-    ϕ[3] ~ -mCaLh*(V-VCa)/C,
-    ϕ[4] ~ -mCaTh*hCaTh*(V-VCa)/C,
-    ϕ[5] ~ -mKCainf(Cah-half_acts[12])*(V-VK)/C,
-    ϕ[6] ~ -(V-Vl)/C,
+    ϕ[1] ~ -mNah*hNah*(V-ENa)/C,
+    ϕ[2] ~ -mKdh*(V-EK)/C,
+    ϕ[3] ~ -mCaLh*(V-ECa)/C,
+    ϕ[4] ~ -mCaTh*hCaTh*(V-ECa)/C,
+    ϕ[5] ~ -mKCainf(Cah-half_acts[12])*(V-EK)/C,
+    ϕ[6] ~ -(V-Eleak)/C,
 
     [tmp[i] ~ γ[i]*P[i]*Ψ[i]^2 for i=1:k]...,
     D(Vh) ~ dot(θ,ϕ) + (γ0+sum(tmp))*(V-Vh) + input/C,
@@ -160,7 +160,7 @@ k = 6 # Number of maximal conductances to learn
     D(mCaLh) ~ (1/(τ_errs[8]*tau_mCaL(V))) * (mCaLinf(V-half_acts[8]) - mCaLh),
     D(mCaTh) ~ (1/(τ_errs[9]*tau_mCaT(V))) * (mCaTinf(V-half_acts[9]) - mCaTh),
     D(hCaTh) ~ (1/(τ_errs[10]*tau_hCaT(V))) * (hCaTinf(V-half_acts[10]) - hCaTh),
-    D(Cah) ~ (1/(τ_errs[12]*tau_Ca)) * ((-αCa*gCaLCa*mCaLh*(V-VCa))+(-β*gCaT*mCaTh*hCaTh*(V-VCa)) - Cah),
+    D(Cah) ~ (1/(τ_errs[12]*tau_Ca)) * ((-αCa*gCaLCa*mCaLh*(V-ECa))+(-β*gCaT*mCaTh*hCaTh*(V-ECa)) - Cah),
 ],t)
 
 @parameters α=0.0002
@@ -194,7 +194,7 @@ paramtrs = []
 V0 = -80.
 init_state_vec = [NeurTrue.V => V0, NeurTrue.mNa => mNainf(V0), NeurTrue.hNa => hNainf(V0), NeurTrue.mKd => mKdinf(V0),
 NeurTrue.mAf => 0., NeurTrue.hAf => 0., NeurTrue.mAs=>0.,NeurTrue.hAs=>0.,NeurTrue.mCaL=>mCaLinf(V0),
-NeurTrue.mCaT=>0.,NeurTrue.hCaT=>0.,NeurTrue.mH=>0.,NeurTrue.Ca=>(-αCa*4*mCaLinf(V0)*(V0-VCa))+(-β*0*0*0*(V0-VCa)),
+NeurTrue.mCaT=>0.,NeurTrue.hCaT=>0.,NeurTrue.mH=>0.,NeurTrue.Ca=>(-αCa*4*mCaLinf(V0)*(V0-ECa))+(-β*0*0*0*(V0-ECa)),
 Identifier.Vh => 0., Identifier.mNah => 0., Identifier.hNah => 0., Identifier.mKdh => 0.,
 Identifier.mCaLh=>0.,
 Identifier.mCaTh=>0.,Identifier.hCaTh=>0.,Identifier.Cah=>0.,
