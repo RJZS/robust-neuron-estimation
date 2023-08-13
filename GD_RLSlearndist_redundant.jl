@@ -239,12 +239,14 @@ if is_plotting
     
     pgCaLtrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gCaL,err_trunc_st:err_trnc_end]/3,label=L"$\mu_{\rm{CaL}}/N$",legend=:bottomleft,ylabel="[mS / cm^2]")
     meangCaLests = (sol[Identifier.θ[2*l+1],err_trunc_st:err_trnc_end].+sol[Identifier.θ[2*l+2],err_trunc_st:err_trnc_end].+sol[Identifier.θ[2*l+3],err_trunc_st:err_trnc_end])/3
-    plot!(sol.t[err_trunc_st:err_trnc_end], meangCaLests,dpi=300,label=false)
-    pgKCatrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gKCa,err_trunc_st:err_trnc_end]/3,label=L"$\mu_{\rm{KCa}}/N$",legend=:bottomleft,xlabel="t [ms]",ylabel="[mS / cm^2]")
+    plot!(sol.t[err_trunc_st:err_trnc_end], meangCaLests,dpi=300,label=false)#L"$\bar \hat{\theta}_{\rm{CaL}}$")
+    pgKCatrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gKCa,err_trunc_st:err_trnc_end]/3,label=L"$\mu_{\rm{KCa}}/N$",legend=:bottomleft,xlabel="t [ms]",ylabel="[mS / cm^2]",
+        color=palette(:tab10)[3])
     meangKCaests = (sol[Identifier.θ[4*l+1],err_trunc_st:err_trnc_end].+sol[Identifier.θ[4*l+2],err_trunc_st:err_trnc_end].+sol[Identifier.θ[4*l+3],err_trunc_st:err_trnc_end])/3
-    plot!(sol.t[err_trunc_st:err_trnc_end], meangKCaests,dpi=300,label=false)
+    plot!(sol.t[err_trunc_st:err_trnc_end], meangKCaests,dpi=300,label=false,#L"$\bar \hat{\theta}_{\rm{CaL}}$",
+        color=palette(:tab10)[5])
     
-    fig2 = plot(perrtrnc,pgCaLtrnc,pgKCatrnc,layout=(3,1))
+    fig2 = plot(pVtrnc, perrtrnc,pgCaLtrnc,pgKCatrnc,layout=(4,1),size=(800,600))
     savefig(fig2,"fig5_distredundant")
 
     earlier_start = Int((ramp_start-14000)/dt); earlier_end = Int((ramp_start-4000)/dt)

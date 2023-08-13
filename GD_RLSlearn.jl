@@ -237,7 +237,7 @@ if is_plotting
     pgKCatrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gKCa,err_trunc_st:err_trnc_end],label=L"$\mu_{\rm{KCa}}$",legend=:bottomright,xlabel="t [ms]",ylabel="[mS / cm^2]")
     plot!(sol.t[err_trunc_st:err_trnc_end], sol[Identifier.θ[5],err_trunc_st:err_trnc_end],label=false)
     pramps = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gCaL,err_trunc_st:err_trnc_end],label=L"$\mu_{\rm{CaL}}$",legend=:topleft,xlabel="t [ms]",ylabel="[mS / cm^2]",dpi=300)
-    plot!(sol.t[err_trunc_st:err_trnc_end], sol[Identifier.θ[3],err_trunc_st:err_trnc_end],label=L"$\hat{\theta}_{\rm{CaT}}$",dpi=300)
+    plot!(sol.t[err_trunc_st:err_trnc_end], sol[Identifier.θ[3],err_trunc_st:err_trnc_end],label=L"$\hat{\theta}_{\rm{CaL}}$",dpi=300)
     plot!(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gKCa,err_trunc_st:err_trnc_end],label=L"$\mu_{\rm{KCa}}$",legend=:topleft,dpi=300)
     plot!(sol.t[err_trunc_st:err_trnc_end], sol[Identifier.θ[5],err_trunc_st:err_trnc_end],label=L"$\hat{\theta}_{\rm{KCa}}$",dpi=300)
     fig1 = plot(pVonlytrnc, pinputtrnc, pramps, layout=(3,1))

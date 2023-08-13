@@ -1,4 +1,4 @@
-global num_dps = 10
+global num_dps = 20
 
 global current_err = 0.
 global all_errs = zeros(num_dps)
@@ -16,5 +16,6 @@ end
 mean_errs = mean(all_errs)
 using Statistics; errs_std = std(all_errs) # Standard deviation
 
+println()
 println("Mean: $mean_errs")
 println("Std: $errs_std")
