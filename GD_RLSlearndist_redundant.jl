@@ -229,24 +229,24 @@ if is_plotting
     pVonlytrnc= plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.V,err_trunc_st:err_trnc_end],label=L"$v$",ylabel="[mV]",legend=:bottomleft,dpi=300)
     zoomed_start = Int((ramp_start-4000)/dt); zoomed_end = Int((ramp_start+10000)/dt)
     pVonlyzoomed= plot(sol.t[zoomed_start:zoomed_end], sol[NeurTrue.V,zoomed_start:zoomed_end],label=L"$v$",legend=:bottomright)
-    pVtrnc= plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.V,err_trunc_st:err_trnc_end],label=L"$v$",legend=:bottomleft,ylabel="[mV]",dpi=300)
+    pVtrnc= plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.V,err_trunc_st:err_trnc_end],label=L"$v$",legend=:bottomleft,ylabel="[mV]",dpi=300,size=1.2 .* (600,450))
     plot!(sol.t[err_trunc_st:err_trnc_end],sol[Identifier.Vh,err_trunc_st:err_trnc_end],label=L"$\hat{v}$",legend=:bottomleft,dpi=300)
     #plot!(sol.t[err_trunc_st:err_trnc_end],sol[NeurTrue.input,err_trunc_st:err_trnc_end])
     perrtrnc = plot(sol.t[err_trunc_st:err_trnc_end],
-        abs.(sol[NeurTrue.V,err_trunc_st:err_trnc_end].-sol[Identifier.Vh,err_trunc_st:err_trnc_end]),label=L"|v-\hat{v}\,|",legend=:topleft,ylabel="[mV]")
+        abs.(sol[NeurTrue.V,err_trunc_st:err_trnc_end].-sol[Identifier.Vh,err_trunc_st:err_trnc_end]),label=L"|v-\hat{v}\,|",legend=:topleft,ylabel="[mV]",dpi=300,size=1.2 .* (600,450))
 
     pinputtrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.input,err_trunc_st:err_trnc_end],label=L"$u$",ylabel=L"[$\mu$A]",legend=:bottomleft,dpi=300)
     
-    pgCaLtrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gCaL,err_trunc_st:err_trnc_end]/3,label=L"$\mu_{\rm{CaL}}/N$",legend=:bottomleft,ylabel="[mS / cm^2]")
+    pgCaLtrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gCaL,err_trunc_st:err_trnc_end]/3,label=L"$\mu_{\rm{CaL}}/N$",legend=:bottomleft,ylabel="[mS / cm^2]",size=1.2 .* (600,450))
     meangCaLests = (sol[Identifier.θ[2*l+1],err_trunc_st:err_trnc_end].+sol[Identifier.θ[2*l+2],err_trunc_st:err_trnc_end].+sol[Identifier.θ[2*l+3],err_trunc_st:err_trnc_end])/3
     plot!(sol.t[err_trunc_st:err_trnc_end], meangCaLests,dpi=300,label=false)#L"$\bar \hat{\theta}_{\rm{CaL}}$")
-    pgKCatrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gKCa,err_trunc_st:err_trnc_end]/3,label=L"$\mu_{\rm{KCa}}/N$",legend=:bottomleft,xlabel="t [ms]",ylabel="[mS / cm^2]",
+    pgKCatrnc = plot(sol.t[err_trunc_st:err_trnc_end], sol[NeurTrue.gKCa,err_trunc_st:err_trnc_end]/3,label=L"$\mu_{\rm{KCa}}/N$",legend=:bottomleft,xlabel="t [ms]",ylabel="[mS / cm^2]",size=1.2 .* (600,450),
         color=palette(:tab10)[3])
     meangKCaests = (sol[Identifier.θ[4*l+1],err_trunc_st:err_trnc_end].+sol[Identifier.θ[4*l+2],err_trunc_st:err_trnc_end].+sol[Identifier.θ[4*l+3],err_trunc_st:err_trnc_end])/3
     plot!(sol.t[err_trunc_st:err_trnc_end], meangKCaests,dpi=300,label=false,#L"$\bar \hat{\theta}_{\rm{CaL}}$",
         color=palette(:tab10)[5])
     
-    fig2 = plot(pVtrnc, perrtrnc,pgCaLtrnc,pgKCatrnc,layout=(4,1),size=(800,600))
+    fig2 = plot(pVtrnc, perrtrnc,pgCaLtrnc,pgKCatrnc,layout=(4,1))
     savefig(fig2,"fig5_distredundant")
 
     earlier_start = Int((ramp_start-14000)/dt); earlier_end = Int((ramp_start-4000)/dt)
