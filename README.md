@@ -23,4 +23,6 @@ The neuron's membrane capacitance c = 0.1
 
 The activation and time-constant functions for the gating variables are given at the top of `GD_odes.jl`
 
+## Observer Parameters
 
+The observer parameters are the gain γ and the forgetting rate α (not to be confused with the variable αCa, which is a parameter of the neuron).

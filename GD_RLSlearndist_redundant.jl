@@ -17,7 +17,7 @@ const Eleak = -50.; # Reversal potential of leak channels
 
 const C=0.1; # Membrane capacitance
 αCa=0.1; # Calcium dynamics (L-current)
-β=0.06 # Calcium dynamics (T-current) # Default is 0.1
+β=0.06 # Calcium dynamics (T-current)
 
 # Maximal conductances for the leak, sodium, delayed-rectifier potassium,
 # fast A-type potassium, slow A-type potassium, calcium-activated potassium,
